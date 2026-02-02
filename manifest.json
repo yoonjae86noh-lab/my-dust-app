@@ -1,0 +1,15 @@
+{
+  "name": "내 손안의 미세미세",
+  "short_name": "미세미세",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#3498db",
+  "theme_color": "#3498db",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/869/869869.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
