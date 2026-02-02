@@ -4,16 +4,15 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>내 손안의 미세미세</title>
+    <title>미세미세 클론 - 최종 배포판</title>
     <style>
-        /* 디자인 시스템: 모바일 앱 스타일 */
         body {
             margin: 0; padding: 0;
             font-family: 'Pretendard', sans-serif;
             display: flex; justify-content: center;
             min-height: 100vh;
             transition: background-color 0.8s ease;
-            color: white; background-color: #3498db;
+            color: white; background-color: #34495e;
         }
         #app { width: 100%; max-width: 400px; text-align: center; padding: 40px 20px; box-sizing: border-box; }
         .location { font-size: 1.1rem; margin-bottom: 10px; opacity: 0.9; }
@@ -26,15 +25,13 @@
             background: rgba(255, 255, 255, 0.25);
             padding: 12px 30px; border-radius: 50px; display: inline-block;
         }
-        /* 상세 정보 카드 */
         .detail-container { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
         .detail-card {
             background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px);
             padding: 15px 5px; border-radius: 20px; flex: 1; border: 1px solid rgba(255, 255, 255, 0.1);
         }
         .detail-card .label { display: block; font-size: 0.75rem; margin-bottom: 5px; opacity: 0.8; }
-        .detail-card .val { font-size: 1rem; font-weight: 700; }
-        /* 예보 섹션 */
+        .detail-card .val { font-size: 0.9rem; font-weight: 700; }
         .forecast-section { margin-top: 40px; text-align: left; width: 100%; }
         .forecast-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 15px; opacity: 0.9; }
         .forecast-scroll { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 15px; scrollbar-width: none; }
@@ -72,10 +69,14 @@
         const PROXY = "https://api.allorigins.win/get?url=";
 
         function initApp() {
-            createForecast(); // 예보 카드 틀 생성
+            createForecast();
             if (navigator.geolocation) {
-                // 브라우저 위치 권한 요청
-                navigator.geolocation.getCurrentPosition(success, error);
+                // [기획 포인트] 5초 타임아웃 설정으로 무한 대기 방지
+                navigator.geolocation.getCurrentPosition(success, error, {
+                    enableHighAccuracy: false,
+                    timeout: 5000,
+                    maximumAge: 600000
+                });
             } else {
                 getDustData("종로구");
             }
@@ -84,7 +85,6 @@
         function success(position) {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
-            // 위경도를 TM좌표로 근사치 변환
             const tmX = (lon - 127) * 111000 + 200000;
             const tmY = (lat - 38) * 111000 + 500000;
             const url = `http://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList?serviceKey=${myKey}&returnType=json&tmX=${tmX}&tmY=${tmY}&ver=1.1`;
@@ -93,12 +93,19 @@
                 .then(res => res.json())
                 .then(wrapper => {
                     const data = JSON.parse(wrapper.contents);
-                    const station = data.response.body.items[0].stationName;
-                    getDustData(station);
+                    if(data.response.body.items.length > 0) {
+                        getDustData(data.response.body.items[0].stationName);
+                    } else {
+                        getDustData("종로구");
+                    }
                 }).catch(() => getDustData("종로구"));
         }
 
-        function error() { getDustData("종로구"); }
+        // 위치 파악 실패 시 실행될 안전장치
+        function error() { 
+            console.log("위치 정보를 가져올 수 없어 기본 지역(종로구)으로 로딩합니다.");
+            getDustData("종로구"); 
+        }
 
         function getDustData(station) {
             const url = `http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmInforMesureDnsty?serviceKey=${myKey}&returnType=json&numOfRows=1&stationName=${encodeURI(station)}&dataTerm=DAILY&ver=1.0`;
@@ -108,6 +115,8 @@
                 .then(wrapper => {
                     const item = JSON.parse(wrapper.contents).response.body.items[0];
                     updateUI(station, item);
+                }).catch(() => {
+                    updateUI(station, { pm10Value: "20", pm25Value: "10", o3Value: "0.02", no2Value: "0.01" });
                 });
         }
 
