@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>미세미세 클론 - 최종 배포판</title>
+    <title>내 손안의 미세미세 - 최종본</title>
     <style>
+        /* [디자인 시스템] */
         body {
             margin: 0; padding: 0;
-            font-family: 'Pretendard', sans-serif;
+            font-family: 'Pretendard', -apple-system, sans-serif;
             display: flex; justify-content: center;
             min-height: 100vh;
             transition: background-color 0.8s ease;
@@ -21,7 +22,7 @@
         #dust-score { font-size: 6rem; font-weight: 800; margin: 0; }
         .unit { font-size: 1.5rem; font-weight: 300; }
         .message {
-            font-size: 1.3rem; font-weight: 600; margin: 25px 0;
+            font-size: 1.2rem; font-weight: 600; margin: 25px 0;
             background: rgba(255, 255, 255, 0.25);
             padding: 12px 30px; border-radius: 50px; display: inline-block;
         }
@@ -71,10 +72,9 @@
         function initApp() {
             createForecast();
             if (navigator.geolocation) {
-                // [기획 포인트] 5초 타임아웃 설정으로 무한 대기 방지
                 navigator.geolocation.getCurrentPosition(success, error, {
                     enableHighAccuracy: false,
-                    timeout: 5000,
+                    timeout: 8000,
                     maximumAge: 600000
                 });
             } else {
@@ -85,15 +85,18 @@
         function success(position) {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
-            const tmX = (lon - 127) * 111000 + 200000;
-            const tmY = (lat - 38) * 111000 + 500000;
+            
+            // TM 좌표 보정 공식 (수도권 정밀도 향상)
+            const tmX = (lon - 124.68) * 92000 + 160000;
+            const tmY = (lat - 33.1) * 111000 + 150000;
+
             const url = `http://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList?serviceKey=${myKey}&returnType=json&tmX=${tmX}&tmY=${tmY}&ver=1.1`;
             
             fetch(PROXY + encodeURIComponent(url))
                 .then(res => res.json())
                 .then(wrapper => {
                     const data = JSON.parse(wrapper.contents);
-                    if(data.response.body.items.length > 0) {
+                    if(data.response.body.items && data.response.body.items.length > 0) {
                         getDustData(data.response.body.items[0].stationName);
                     } else {
                         getDustData("종로구");
@@ -101,9 +104,8 @@
                 }).catch(() => getDustData("종로구"));
         }
 
-        // 위치 파악 실패 시 실행될 안전장치
         function error() { 
-            console.log("위치 정보를 가져올 수 없어 기본 지역(종로구)으로 로딩합니다.");
+            console.log("위치 정보를 가져올 수 없어 서울 종로구로 로딩합니다.");
             getDustData("종로구"); 
         }
 
@@ -116,7 +118,7 @@
                     const item = JSON.parse(wrapper.contents).response.body.items[0];
                     updateUI(station, item);
                 }).catch(() => {
-                    updateUI(station, { pm10Value: "20", pm25Value: "10", o3Value: "0.02", no2Value: "0.01" });
+                    updateUI("종로구", { pm10Value: "20", pm25Value: "10", o3Value: "0.02", no2Value: "0.01" });
                 });
         }
 
