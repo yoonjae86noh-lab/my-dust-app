@@ -2,23 +2,23 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>미세미세 클론 완성본</title>
+    <title>내 손안의 미세미세</title>
     <style>
+        /* 디자인 시스템: 모바일 앱 스타일 */
         body {
             margin: 0; padding: 0;
             font-family: 'Pretendard', sans-serif;
             display: flex; justify-content: center;
             min-height: 100vh;
             transition: background-color 0.8s ease;
-            color: white; background-color: #3498db; /* 초기 파란색 */
+            color: white; background-color: #3498db;
         }
         #app { width: 100%; max-width: 400px; text-align: center; padding: 40px 20px; box-sizing: border-box; }
-        
         .location { font-size: 1.1rem; margin-bottom: 10px; opacity: 0.9; }
         #face { font-size: 8rem; display: block; margin: 20px 0; animation: float 3s infinite ease-in-out; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-
         #dust-score { font-size: 6rem; font-weight: 800; margin: 0; }
         .unit { font-size: 1.5rem; font-weight: 300; }
         .message {
@@ -26,8 +26,7 @@
             background: rgba(255, 255, 255, 0.25);
             padding: 12px 30px; border-radius: 50px; display: inline-block;
         }
-
-        /* 상세 카드 */
+        /* 상세 정보 카드 */
         .detail-container { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
         .detail-card {
             background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px);
@@ -35,44 +34,36 @@
         }
         .detail-card .label { display: block; font-size: 0.75rem; margin-bottom: 5px; opacity: 0.8; }
         .detail-card .val { font-size: 1rem; font-weight: 700; }
-
-        /* 예보 섹션 보정 */
+        /* 예보 섹션 */
         .forecast-section { margin-top: 40px; text-align: left; width: 100%; }
         .forecast-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 15px; opacity: 0.9; }
-        .forecast-scroll {
-            display: flex; overflow-x: auto; gap: 12px; padding-bottom: 15px;
-            -webkit-overflow-scrolling: touch; /* 모바일 부드러운 스크롤 */
-        }
+        .forecast-scroll { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 15px; scrollbar-width: none; }
         .forecast-scroll::-webkit-scrollbar { display: none; }
-        
         .forecast-item {
             min-width: 80px; background: rgba(255, 255, 255, 0.15);
             padding: 18px 10px; border-radius: 20px;
             display: flex; flex-direction: column; align-items: center; gap: 10px;
         }
-        .forecast-item .time { font-size: 0.75rem; opacity: 0.7; }
         .forecast-item .f-face { font-size: 1.8rem; }
-        .forecast-item .f-score { font-size: 1rem; font-weight: 700; }
     </style>
 </head>
 <body>
 
     <main id="app">
-        <div class="location" id="addr">서울 측정소 기준</div>
-        <div id="face">😊</div>
-        <h1 id="dust-score">15<span class="unit">㎍/㎥</span></h1>
-        <div class="message" id="msg">공기가 아주 좋아요!</div>
+        <div class="location" id="addr">위치 파악 중...</div>
+        <div id="face">⏳</div>
+        <h1 id="dust-score">--<span class="unit">㎍/㎥</span></h1>
+        <div class="message" id="msg">데이터 로딩 중...</div>
 
         <div class="detail-container">
-            <div class="detail-card"><span class="label">초미세먼지</span><span class="val" id="pm25-val">--㎍/㎥</span></div>
-            <div class="detail-card"><span class="label">오존</span><span class="val" id="o3-val">--ppm</span></div>
-            <div class="detail-card"><span class="label">이산화질소</span><span class="val" id="no2-val">--ppm</span></div>
+            <div class="detail-card"><span class="label">초미세먼지</span><span class="val" id="pm25-val">--</span></div>
+            <div class="detail-card"><span class="label">오존</span><span class="val" id="o3-val">--</span></div>
+            <div class="detail-card"><span class="label">이산화질소</span><span class="val" id="no2-val">--</span></div>
         </div>
 
         <div class="forecast-section">
             <div class="forecast-title">오늘의 대기 변화</div>
-            <div class="forecast-scroll" id="forecast-list">
-                </div>
+            <div class="forecast-scroll" id="forecast-list"></div>
         </div>
     </main>
 
@@ -81,9 +72,9 @@
         const PROXY = "https://api.allorigins.win/get?url=";
 
         function initApp() {
-            // 예보 카드를 먼저 생성해서 화면을 채워줍니다 (기획적 선행 로드)
-            createForecast();
+            createForecast(); // 예보 카드 틀 생성
             if (navigator.geolocation) {
+                // 브라우저 위치 권한 요청
                 navigator.geolocation.getCurrentPosition(success, error);
             } else {
                 getDustData("종로구");
@@ -93,6 +84,7 @@
         function success(position) {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
+            // 위경도를 TM좌표로 근사치 변환
             const tmX = (lon - 127) * 111000 + 200000;
             const tmY = (lat - 38) * 111000 + 500000;
             const url = `http://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList?serviceKey=${myKey}&returnType=json&tmX=${tmX}&tmY=${tmY}&ver=1.1`;
@@ -101,7 +93,8 @@
                 .then(res => res.json())
                 .then(wrapper => {
                     const data = JSON.parse(wrapper.contents);
-                    getDustData(data.response.body.items[0].stationName);
+                    const station = data.response.body.items[0].stationName;
+                    getDustData(station);
                 }).catch(() => getDustData("종로구"));
         }
 
@@ -130,11 +123,9 @@
             document.getElementById('face').innerText = face;
             document.getElementById('dust-score').innerHTML = `${val}<span class="unit">㎍/㎥</span>`;
             document.getElementById('msg').innerText = `공기가 ${msg}!`;
-            
-            // 상세 정보 업데이트
-            document.getElementById('pm25-val').innerText = (item.pm25Value || "10") + "㎍/㎥";
-            document.getElementById('o3-val').innerText = (item.o3Value || "0.02") + "ppm";
-            document.getElementById('no2-val').innerText = (item.no2Value || "0.01") + "ppm";
+            document.getElementById('pm25-val').innerText = (item.pm25Value || "0") + "㎍/㎥";
+            document.getElementById('o3-val').innerText = (item.o3Value || "0") + "ppm";
+            document.getElementById('no2-val').innerText = (item.no2Value || "0") + "ppm";
         }
 
         function createForecast() {
