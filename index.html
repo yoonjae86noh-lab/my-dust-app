@@ -93,18 +93,21 @@
 
             const url = `http://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList?serviceKey=${myKey}&returnType=json&tmX=${tmX}&tmY=${tmY}&ver=1.1`;
             
+           function getDustData(station) {
+               const url = `http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmInforMesureDnsty?serviceKey=${myKey}&returnType=json&numOfRows=1&stationName=${encodeURI(station)}&dataTerm=DAILY&ver=1.4`;
             fetch(PROXY + encodeURIComponent(url))
-                .then(res => res.json())
-                .then(wrapper => {
-                    const data = JSON.parse(wrapper.contents);
-                    if(data.response.body.items && data.response.body.items.length > 0) {
-                        getDustData(data.response.body.items[0].stationName);
-                    } else {
-                        getDustData("종로구");
-                    }
-                }).catch(() => getDustData("종로구"));
+            .then(res => res.json())
+            .then(wrapper => {
+            const data = JSON.parse(wrapper.contents);
+            const item = data.response.body.items[0];
+            updateUI(station, item);
+            })
+            .catch(err => {
+            console.error("데이터 수신 오류:", err);
+            // 에러 시 종로구 기본값 표시
+            updateUI("종로구", { pm10Value: "20", pm25Value: "10", o3Value: "0.02", no2Value: "0.01" });
+            });
         }
-
         function error() { 
             console.log("위치 정보를 가져올 수 없어 서울 종로구로 로딩합니다.");
             getDustData("종로구"); 
@@ -156,4 +159,5 @@
     </script>
 </body>
 </html>
+
 
