@@ -92,7 +92,7 @@
 
             const url = `http://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList?serviceKey=${myKey}&returnType=json&tmX=${tmX}&tmY=${tmY}&ver=1.1`;
             
-         fetch(PROXY + encodeURIComponent(url))
+            fetch(PROXY + encodeURIComponent(url))
                 .then(res => res.json())
                 .then(wrapper => {
                     const data = JSON.parse(wrapper.contents);
@@ -160,4 +160,3 @@
     </script>
 </body>
 </html>
-                        
