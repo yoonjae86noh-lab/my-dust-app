@@ -5,64 +5,72 @@
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAn0lEQVQ4T2P8////fwYgYCSIsQC1DKMB">
-    <title>내 손안의 미세미세 - 완결판</title>
+    <title>내 손안의 미세미세 - 프로 에디션</title>
     <style>
+        :root { --main-bg: #34495e; }
         body {
             margin: 0; padding: 0;
-            font-family: 'Pretendard', -apple-system, sans-serif;
+            font-family: 'Pretendard', sans-serif;
             display: flex; justify-content: center;
             min-height: 100vh;
             transition: background-color 0.8s ease;
-            color: white; background-color: #34495e;
+            color: white; background-color: var(--main-bg);
         }
-        #app { width: 100%; max-width: 400px; text-align: center; padding: 40px 20px; box-sizing: border-box; }
-        .location { font-size: 1.1rem; margin-bottom: 5px; opacity: 0.9; }
-        .update-time { font-size: 0.75rem; opacity: 0.6; margin-bottom: 20px; }
-        #face { font-size: 8rem; display: block; margin: 20px 0; animation: float 3s infinite ease-in-out; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
-        #dust-score { font-size: 6rem; font-weight: 800; margin: 0; }
-        .unit { font-size: 1.5rem; font-weight: 300; }
+        #app { width: 100%; max-width: 400px; text-align: center; padding: 30px 20px; box-sizing: border-box; }
+        
+        /* 검색창 스타일 */
+        .search-box {
+            display: flex; gap: 8px; margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px; border-radius: 50px;
+        }
+        .search-box input {
+            background: none; border: none; color: white; flex: 1;
+            outline: none; font-size: 1rem;
+        }
+        .search-box input::placeholder { color: rgba(255, 255, 255, 0.6); }
+        .search-box button {
+            background: none; border: none; color: white; cursor: pointer; font-size: 1.2rem;
+        }
+
+        .location { font-size: 1.2rem; font-weight: 600; margin-bottom: 5px; }
+        .update-time { font-size: 0.8rem; opacity: 0.6; margin-bottom: 20px; }
+        #face { font-size: 7rem; display: block; margin: 15px 0; animation: float 3s infinite ease-in-out; }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        #dust-score { font-size: 5.5rem; font-weight: 800; margin: 0; }
+        .unit { font-size: 1.2rem; font-weight: 300; }
         .message {
-            font-size: 1.2rem; font-weight: 600; margin: 25px 0;
+            font-size: 1.1rem; font-weight: 600; margin: 20px 0;
             background: rgba(255, 255, 255, 0.25);
-            padding: 12px 30px; border-radius: 50px; display: inline-block;
+            padding: 10px 25px; border-radius: 50px; display: inline-block;
         }
-        .detail-container { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
+        .detail-container { display: flex; justify-content: space-between; gap: 10px; }
         .detail-card {
-            background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(10px);
-            padding: 15px 5px; border-radius: 20px; flex: 1; border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px);
+            padding: 12px 5px; border-radius: 15px; flex: 1;
         }
-        .detail-card .label { display: block; font-size: 0.75rem; margin-bottom: 5px; opacity: 0.8; }
+        .detail-card .label { display: block; font-size: 0.7rem; opacity: 0.8; margin-bottom: 4px; }
         .detail-card .val { font-size: 0.9rem; font-weight: 700; }
-        .forecast-section { margin-top: 40px; text-align: left; width: 100%; }
-        .forecast-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 15px; opacity: 0.9; }
-        .forecast-scroll { display: flex; overflow-x: auto; gap: 12px; padding-bottom: 15px; scrollbar-width: none; }
-        .forecast-scroll::-webkit-scrollbar { display: none; }
-        .forecast-item {
-            min-width: 80px; background: rgba(255, 255, 255, 0.15);
-            padding: 18px 10px; border-radius: 20px;
-            display: flex; flex-direction: column; align-items: center; gap: 10px;
-        }
     </style>
 </head>
 <body>
 
     <main id="app">
-        <div class="location" id="addr">위치 파악 중...</div>
-        <div class="update-time" id="last-update">최신 정보를 가져오는 중</div>
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="동네 이름을 입력하세요 (예: 구리시)">
+            <button onclick="searchStation()">🔍</button>
+        </div>
+
+        <div class="location" id="addr">위치 찾는 중...</div>
+        <div class="update-time" id="last-update">-</div>
         <div id="face">⏳</div>
         <h1 id="dust-score">--<span class="unit">㎍/㎥</span></h1>
-        <div class="message" id="msg">데이터 로딩 중...</div>
+        <div class="message" id="msg">잠시만 기다려주세요</div>
 
         <div class="detail-container">
             <div class="detail-card"><span class="label">초미세먼지</span><span class="val" id="pm25-val">--</span></div>
             <div class="detail-card"><span class="label">오존</span><span class="val" id="o3-val">--</span></div>
             <div class="detail-card"><span class="label">이산화질소</span><span class="val" id="no2-val">--</span></div>
-        </div>
-
-        <div class="forecast-section">
-            <div class="forecast-title">오늘의 대기 변화</div>
-            <div class="forecast-scroll" id="forecast-list"></div>
         </div>
     </main>
 
@@ -71,24 +79,35 @@
         const PROXY = "https://api.allorigins.win/get?url=";
 
         function initApp() {
-            createForecast();
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(success, error, {
-                    enableHighAccuracy: false,
-                    timeout: 8000,
-                    maximumAge: 600000
+                    enableHighAccuracy: true, // 정확도 향상 옵션
+                    timeout: 5000
                 });
-            } else {
-                getDustData("종로구");
+            } else { getDustData("종로구"); }
+        }
+
+        // 검색 기능 추가
+        function searchStation() {
+            const input = document.getElementById('search-input').value.trim();
+            if(input) {
+                document.getElementById('addr').innerText = "검색 중...";
+                getDustData(input);
             }
         }
 
-        // [API 1번 사용] 위치 좌표로 가까운 측정소 이름 찾기
+        // 엔터키 검색 지원
+        document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') searchStation();
+        });
+
         function success(position) {
             const lat = position.coords.latitude;
             const lon = position.coords.longitude;
-            const tmX = (lon - 124.68) * 92000 + 160000;
-            const tmY = (lat - 33.1) * 111000 + 150000;
+            
+            // 보정된 정밀 좌표 변환 (중부원점 기준)
+            const tmX = (lon - 127.0) * 91397 + 200000;
+            const tmY = (lat - 38.0) * 110941 + 600000;
 
             const url = `http://apis.data.go.kr/B552584/MsrstnInfoInqireSvc/getNearbyMsrstnList?serviceKey=${myKey}&returnType=json&tmX=${tmX}&tmY=${tmY}&ver=1.1`;
             
@@ -96,66 +115,49 @@
                 .then(res => res.json())
                 .then(wrapper => {
                     const data = JSON.parse(wrapper.contents);
-                    const station = (data.response.body.items && data.response.body.items.length > 0) 
-                                    ? data.response.body.items[0].stationName 
-                                    : "종로구";
+                    const items = data.response.body.items;
+                    const station = (items && items.length > 0) ? items[0].stationName : "종로구";
                     getDustData(station);
                 }).catch(() => getDustData("종로구"));
         }
 
         function error() { getDustData("종로구"); }
 
-        // [API 2번 사용] 측정소 이름으로 진짜 미세먼지 데이터 가져오기 (오타 수정됨)
         function getDustData(station) {
-            // 핵심 수정: getMsrstnAcctoRltmMesureDnsty (중간에 Infor 삭제)
+            // [수정 완료] 오타 제거된 정확한 기능명 사용
             const url = `http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty?serviceKey=${myKey}&returnType=json&numOfRows=1&stationName=${encodeURI(station)}&dataTerm=DAILY&ver=1.0`;
             
             fetch(PROXY + encodeURIComponent(url))
                 .then(res => res.json())
                 .then(wrapper => {
                     const data = JSON.parse(wrapper.contents);
-                    if (data.response.body.items && data.response.body.items.length > 0) {
-                        const item = data.response.body.items[0];
-                        updateUI(station, item);
+                    const items = data.response.body.items;
+                    if (items && items.length > 0) {
+                        updateUI(station, items[0]);
                     } else {
-                        throw new Error("No data");
+                        alert("해당 지역의 데이터를 찾을 수 없습니다.");
+                        document.getElementById('addr').innerText = "지역 확인 필요";
                     }
-                }).catch(() => {
-                    updateUI("데이터 연결 오류", { pm10Value: "0", pm25Value: "0", o3Value: "0", no2Value: "0", dataTime: "점검 중" });
-                });
+                }).catch(err => console.error(err));
         }
 
         function updateUI(station, item) {
             const val = parseInt(item.pm10Value) || 0;
-            let color = "#3498db", face = "😊", msg = "좋음";
+            let color = "#3498db", face = "😊", msg = "공기가 좋아요!";
             
-            if(val > 150) { color = "#e74c3c"; face = "👿"; msg = "최악"; }
-            else if(val > 110) { color = "#f39c12"; face = "😫"; msg = "매우 나쁨"; }
-            else if(val > 80) { color = "#2ecc71"; face = "😟"; msg = "상당히 나쁨"; }
-            else if(val > 50) { color = "#f39c12"; face = "😐"; msg = "나쁨"; }
-            else if(val > 30) { color = "#2ecc71"; face = "😊"; msg = "보통"; }
+            if(val > 150) { color = "#e74c3c"; face = "😫"; msg = "절대 나가지 마세요!"; }
+            else if(val > 80) { color = "#f39c12"; face = "😐"; msg = "마스크 꼭 쓰세요!"; }
+            else if(val > 30) { color = "#2ecc71"; face = "🙂"; msg = "보통이에요"; }
 
             document.body.style.backgroundColor = color;
-            document.getElementById('addr').innerText = station + " 측정소 기준";
-            document.getElementById('last-update').innerText = "측정 시간: " + (item.dataTime || "확인 불가");
+            document.getElementById('addr').innerText = station + " 측정소";
+            document.getElementById('last-update').innerText = "업데이트: " + (item.dataTime || "-");
             document.getElementById('face').innerText = face;
             document.getElementById('dust-score').innerHTML = `${val}<span class="unit">㎍/㎥</span>`;
-            document.getElementById('msg').innerText = `공기가 ${msg}!`;
+            document.getElementById('msg').innerText = msg;
             document.getElementById('pm25-val').innerText = (item.pm25Value || "-") + "㎍/㎥";
             document.getElementById('o3-val').innerText = (item.o3Value || "-") + "ppm";
             document.getElementById('no2-val').innerText = (item.no2Value || "-") + "ppm";
-        }
-
-        function createForecast() {
-            const list = document.getElementById('forecast-list');
-            const hours = ["오전 11시", "오후 12시", "오후 1시", "오후 2시", "오후 3시", "오후 4시", "오후 5시"];
-            list.innerHTML = hours.map(h => `
-                <div class="forecast-item">
-                    <span class="time">${h}</span>
-                    <span style="font-size:1.5rem">😊</span>
-                    <span class="f-score">보통</span>
-                </div>
-            `).join('');
         }
 
         initApp();
