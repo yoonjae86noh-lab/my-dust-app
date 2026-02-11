@@ -134,13 +134,15 @@
         color = "#00d2ff"; face = "✨"; msg = "공기가 너무 완벽해요!";
     } else if (val <= 30) {
         color = "#2ecc71"; face = "😊"; msg = "야외 활동하기 딱 좋아요.";
-    } else if (val <= 80) {
+    } else if (val <= 50) {
         color = "#f1c40f"; face = "🙂"; msg = "무난한 날씨입니다.";
+    } else if (val <= 80) {
+        color = "#f39c12"; face = "😐"; msg = "공기가 좋지 않아요.";
     } else if (val <= 150) {
         color = "#e67e22"; face = "😷"; msg = "마스크를 꼭 착용하세요.";
     } else {
-        color = "#e74c3c"; face = "😫"; msg = "가급적 외출을 삼가세요!";
-
+        color = "#e74c3c"; face = "😫"; msg = "가급적 외출을 삼가세요!";}
+        
             document.body.style.backgroundColor = color;
             document.getElementById('addr').innerText = station + " 측정소 기준";
             document.getElementById('last-update').innerText = "측정 시간: " + (item.dataTime || "확인 불가");
