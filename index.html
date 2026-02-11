@@ -129,9 +129,11 @@
             const val = parseInt(item.pm10Value) || 0;
             let color = "#3498db", face = "😊", msg = "좋음";
             
-            if(val > 150) { color = "#e74c3c"; face = "😫"; msg = "최악"; }
-            else if(val > 80) { color = "#f39c12"; face = "😐"; msg = "나쁨"; }
-            else if(val > 30) { color = "#2ecc71"; face = "🙂"; msg = "보통"; }
+            if(val > 150) { color = "#e74c3c"; face = "👿"; msg = "최악"; }
+            else if(val > 110) { color = "#f39c12"; face = "😫"; msg = "매우 나쁨"; }
+            else if(val > 80) { color = "#2ecc71"; face = "😟"; msg = "상당히 나쁨"; }
+            else if(val > 50) { color = "#f39c12"; face = "😐"; msg = "나쁨"; }
+            else if(val > 30) { color = "#2ecc71"; face = "😊"; msg = "보통"; }
 
             document.body.style.backgroundColor = color;
             document.getElementById('addr').innerText = station + " 측정소 기준";
